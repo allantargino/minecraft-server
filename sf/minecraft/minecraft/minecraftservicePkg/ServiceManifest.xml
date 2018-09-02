@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ServiceManifest Name="minecraftservicePkg" Version="1.0.0"
+                 xmlns="http://schemas.microsoft.com/2011/01/fabric" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" >
+
+   <ServiceTypes>
+      <StatelessServiceType ServiceTypeName="minecraftserviceType" UseImplicitHost="true">
+   </StatelessServiceType>
+   </ServiceTypes>
+   
+   <CodePackage Name="code" Version="1.0.0">
+      <EntryPoint>
+         <ContainerHost>
+            <ImageName>openhack/minecraft-server</ImageName>
+            <Commands></Commands>
+         </ContainerHost>
+      </EntryPoint>
+      <EnvironmentVariables>
+        <EnvironmentVariable Name="EULA" Value="TRUE"/>
+      </EnvironmentVariables>
+   </CodePackage>
+   <Resources>
+        <Endpoints>
+            <Endpoint Name="minecraftserviceEndpoint" UriScheme="http" Port="25565" Protocol="http"/>
+            <Endpoint Name="minecraftserviceEndpoint2" Port="25575" Protocol="tcp"/>
+        </Endpoints>
+    </Resources>
+ </ServiceManifest>

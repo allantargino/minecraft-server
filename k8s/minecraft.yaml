@@ -1,0 +1,75 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: minecraft
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: minecraft
+    spec:
+      initContainers:
+      - name: minecraft-data-restore
+        image: allantargino/docker-lsyncd:latest
+        env:
+        - name: SOURCE
+          value: "/mnt/azure/tenant1/"
+        - name: TARGET
+          value: "/data/"
+        - name: EXIT_AFTER_COPY
+          value: "true"
+        volumeMounts:
+        - mountPath: "/mnt/azure/"
+          name: tenant-volume
+        - mountPath: "/data"
+          name: data-volume
+      containers:
+      - name: minecraft-game
+        image: openhack/minecraft-server
+        ports:
+        - containerPort: 25565
+          name: minecraft
+        - containerPort: 25575
+          name: rcon  
+        env:
+        - name: EULA
+          value: "true"
+        - name: MAX_PLAYERS
+          value: "150"
+        volumeMounts:       
+        - mountPath: "/data"
+          name: data-volume 
+      - name: minecraft-data-sync
+        image: allantargino/docker-lsyncd:latest
+        env:
+        - name: SOURCE
+          value: "/data/"
+        - name: TARGET
+          value: "/mnt/azure/tenant1/"
+        - name: SYNC_TIME
+          value: "5"
+        volumeMounts:
+        - mountPath: "/mnt/azure/"
+          name: tenant-volume         
+        - mountPath: "/data"
+          name: data-volume   
+      volumes:
+        - name: tenant-volume
+          persistentVolumeClaim:
+            claimName: azurefile
+        - name: data-volume
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minecraft-cluster-azure
+spec:
+  type: LoadBalancer
+  ports:
+  - name: game
+    port: 25565
+  selector:
+    app: minecraft
+---
